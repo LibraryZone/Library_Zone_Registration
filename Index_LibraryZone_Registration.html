@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Library Zone Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Mobile friendly -->
+  <style>
+    :root{--card-bg:#fff;--accent:#2d6cdf;--muted:#666}
+    body{font-family:Inter,system-ui,Arial;margin:16px;background:#f3f6fb;color:#222}
+    h1{margin:0;font-size:20px;color:var(--accent);text-align:center}
+    .card{background:var(--card-bg);padding:14px;border-radius:8px;box-shadow:0 1px 3px rgba(20,30,60,0.06);max-width:420px;margin:auto}
+    label{display:block;font-size:13px;margin-top:8px;color:var(--muted)}
+    input{width:100%;padding:8px 10px;border:1px solid #e0e6ef;border-radius:6px;margin-top:6px}
+    button{background:var(--accent);color:#fff;border:0;padding:10px;border-radius:6px;cursor:pointer;margin-top:12px;width:100%}
+    #qrcode{text-align:center;margin-top:20px}
+    img.qr-img{border:8px solid #fff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.25);max-width:100%}
+    .qr-name{margin-top:12px;font-size:16px;font-weight:600;color:#2d6cdf;text-align:center}
+    .qr-caption{margin-top:6px;font-size:14px;color:#444;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Library Zone Registration</h1>
+
+    <!-- Registration form -->
+    <form id="registration-form" style="display:none;">
+      <label for="firstName">First Name:</label>
+      <input type="text" id="firstName" required>
+
+      <label for="secondName">Second Name (optional):</label>
+      <input type="text" id="secondName">
+
+      <label for="surname1">First Surname:</label>
+      <input type="text" id="surname1" required>
+
+      <label for="surname2">Second Surname:</label>
+      <input type="text" id="surname2" required>
+
+      <label for="dob">Date of Birth:</label>
+      <input type="date" id="dob" required>
+
+      <label for="location">Location:</label>
+      <input type="text" id="location" required>
+
+      <button type="submit">Generate QR</button>
+    </form>
+
+    <!-- QR code container -->
+    <div id="qrcode"></div>
+    <div id="qrname" class="qr-name"></div>
+    <div id="qrcaption" class="qr-caption"></div>
+  </div>
+
+  <!-- QRCode.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const qrContainer = document.getElementById("qrcode");
+    const qrNameBox = document.getElementById("qrname");
+    const qrCaptionBox = document.getElementById("qrcaption");
+    const form = document.getElementById("registration-form");
+
+    // Check if QR image exists in localStorage
+    const savedQRImage = localStorage.getItem("libraryQRImage");
+    const savedQRName = localStorage.getItem("libraryQRName");
+
+    if (savedQRImage) {
+      // Show QR image only
+      const img = document.createElement("img");
+      img.src = savedQRImage;
+      img.className = "qr-img";
+      qrContainer.appendChild(img);
+
+      // Show name under QR
+      if (savedQRName) {
+        qrNameBox.textContent = savedQRName;
+      }
+
+      // Show caption
+      qrCaptionBox.textContent = "Use this code to borrow a book at Library Zone.";
+    } else {
+      // Show form if no QR yet
+      form.style.display = "block";
+    }
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const firstName = document.getElementById("firstName").value;
+      const secondName = document.getElementById("secondName").value;
+      const surname1 = document.getElementById("surname1").value;
+      const surname2 = document.getElementById("surname2").value;
+      const dob = document.getElementById("dob").value;
+      const location = document.getElementById("location").value;
+
+      const fullName = `${firstName} ${secondName} ${surname1} ${surname2}`.replace(/\s+/g," ").trim();
+      const qrText = `Name: ${fullName}, DOB: ${dob}, Location: ${location}`;
+
+      // Generate QR code in a temporary container
+      const tempDiv = document.createElement("div");
+      new QRCode(tempDiv, {
+        text: qrText,
+        width: 220,
+        height: 220,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+
+      // Convert QR canvas to image
+      setTimeout(() => {
+        const canvas = tempDiv.querySelector("canvas");
+        const qrImage = canvas.toDataURL("image/png");
+
+        // Save image and name to localStorage
+        localStorage.setItem("libraryQRImage", qrImage);
+        localStorage.setItem("libraryQRName", fullName);
+
+        // Refresh page to show only the image
+        location.reload();
+      }, 500);
+    });
+  </script>
+</body>
+</html>
